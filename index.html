@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Log</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .check-in-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .check-in-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .check-out-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .check-out-btn:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 30px;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+
+        .cancel-btn {
+            background: #666;
+            color: white;
+            padding: 10px 30px;
+        }
+
+        .cancel-btn:hover {
+            background: #555;
+        }
+
+        .visitors-section {
+            margin-top: 30px;
+        }
+
+        .visitors-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .visitor-list {
+            list-style: none;
+        }
+
+        .visitor-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .visitor-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .visitor-info {
+            flex: 1;
+        }
+
+        .visitor-name {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .visitor-details {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .checkout-visitor-btn {
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            font-size: 0.9em;
+        }
+
+        .checkout-visitor-btn:hover {
+            background: #e68900;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 30px;
+            font-style: italic;
+        }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Visitor Log</h1>
+        
+        <div id="successMessage" class="success-message"></div>
+
+        <div class="button-container">
+            <button class="check-in-btn" onclick="openCheckInModal()">Check-In</button>
+            <button class="check-out-btn" onclick="openCheckOutModal()">Check-Out</button>
+        </div>
+
+        <div class="visitors-section">
+            <h2>Currently Checked-In Visitors</h2>
+            <ul id="visitorList" class="visitor-list">
+                <li class="empty-message">No visitors currently checked in.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Check-In Modal -->
+    <div id="checkInModal" class="modal">
+        <div class="modal-content">
+            <h2>Visitor Check-In</h2>
+            <form id="checkInForm">
+                <div class="form-group">
+                    <label for="visitorName">Name *</label>
+                    <input type="text" id="visitorName" required>
+                </div>
+                <div class="form-group">
+                    <label for="visitorCompany">Company *</label>
+                    <input type="text" id="visitorCompany" required>
+                </div>
+                <div class="form-group">
+                    <label for="visitingPerson">Person to See *</label>
+                    <input type="text" id="visitingPerson" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeCheckInModal()">Cancel</button>
+                    <button type="submit" class="submit-btn">Check-In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Check-Out Modal -->
+    <div id="checkOutModal" class="modal">
+        <div class="modal-content">
+            <h2>Visitor Check-Out</h2>
+            <ul id="checkOutList" class="visitor-list">
+                <li class="empty-message">No visitors to check out.</li>
+            </ul>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" onclick="closeCheckOutModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load visitors from localStorage
+        let visitors = JSON.parse(localStorage.getItem('visitors')) || [];
+
+        // Initialize the application
+        function init() {
+            updateVisitorList();
+        }
+
+        // Open Check-In Modal
+        function openCheckInModal() {
+            document.getElementById('checkInModal').style.display = 'block';
+            document.getElementById('checkInForm').reset();
+        }
+
+        // Close Check-In Modal
+        function closeCheckInModal() {
+            document.getElementById('checkInModal').style.display = 'none';
+        }
+
+        // Open Check-Out Modal
+        function openCheckOutModal() {
+            const checkedInVisitors = visitors.filter(v => !v.checkOutTime);
+            
+            if (checkedInVisitors.length === 0) {
+                showSuccessMessage('No visitors currently checked in.');
+                return;
+            }
+
+            const checkOutList = document.getElementById('checkOutList');
+            checkOutList.innerHTML = '';
+
+            checkedInVisitors.forEach(visitor => {
+                const li = document.createElement('li');
+                li.className = 'visitor-item';
+                li.innerHTML = `
+                    <div class="visitor-info">
+                        <div class="visitor-name">${visitor.name}</div>
+                        <div class="visitor-details">
+                            Company: ${visitor.company}<br>
+                            Visiting: ${visitor.visitingPerson}<br>
+                            Checked in: ${visitor.checkInTime}
+                        </div>
+                    </div>
+                    <button class="checkout-visitor-btn" onclick="checkOutVisitor('${visitor.id}')">Check-Out</button>
+                `;
+                checkOutList.appendChild(li);
+            });
+
+            document.getElementById('checkOutModal').style.display = 'block';
+        }
+
+        // Close Check-Out Modal
+        function closeCheckOutModal() {
+            document.getElementById('checkOutModal').style.display = 'none';
+        }
+
+        // Handle Check-In Form Submission
+        document.getElementById('checkInForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('visitorName').value.trim();
+            const company = document.getElementById('visitorCompany').value.trim();
+            const visitingPerson = document.getElementById('visitingPerson').value.trim();
+
+            if (!name || !company || !visitingPerson) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const visitor = {
+                id: Date.now().toString(),
+                name: name,
+                company: company,
+                visitingPerson: visitingPerson,
+                checkInTime: new Date().toLocaleString(),
+                checkOutTime: null
+            };
+
+            visitors.push(visitor);
+            saveVisitors();
+            updateVisitorList();
+            closeCheckInModal();
+            showSuccessMessage(`${name} has been checked in successfully!`);
+        });
+
+        // Check-Out a Visitor
+        function checkOutVisitor(visitorId) {
+            const visitor = visitors.find(v => v.id === visitorId);
+            if (visitor) {
+                visitor.checkOutTime = new Date().toLocaleString();
+                saveVisitors();
+                updateVisitorList();
+                closeCheckOutModal();
+                showSuccessMessage(`${visitor.name} has been checked out successfully!`);
+            }
+        }
+
+        // Update the Visitor List Display
+        function updateVisitorList() {
+            const visitorList = document.getElementById('visitorList');
+            const checkedInVisitors = visitors.filter(v => !v.checkOutTime);
+
+            if (checkedInVisitors.length === 0) {
+                visitorList.innerHTML = '<li class="empty-message">No visitors currently checked in.</li>';
+                return;
+            }
+
+            visitorList.innerHTML = '';
+            checkedInVisitors.forEach(visitor => {
+                const li = document.createElement('li');
+                li.className = 'visitor-item';
+                li.innerHTML = `
+                    <div class="visitor-info">
+                        <div class="visitor-name">${visitor.name}</div>
+                        <div class="visitor-details">
+                            Company: ${visitor.company}<br>
+                            Visiting: ${visitor.visitingPerson}<br>
+                            Checked in: ${visitor.checkInTime}
+                        </div>
+                    </div>
+                `;
+                visitorList.appendChild(li);
+            });
+        }
+
+        // Save Visitors to localStorage
+        function saveVisitors() {
+            localStorage.setItem('visitors', JSON.stringify(visitors));
+        }
+
+        // Show Success Message
+        function showSuccessMessage(message) {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const checkInModal = document.getElementById('checkInModal');
+            const checkOutModal = document.getElementById('checkOutModal');
+            
+            if (event.target === checkInModal) {
+                closeCheckInModal();
+            }
+            if (event.target === checkOutModal) {
+                closeCheckOutModal();
+            }
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
